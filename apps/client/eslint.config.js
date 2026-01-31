@@ -34,6 +34,7 @@ export default defineConfig([
     },
     rules: {
       "react/react-in-jsx-scope": "off",
+      "react/no-children-prop": "off",
     },
   },
 ]);

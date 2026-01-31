@@ -1,39 +1,138 @@
+import {
+  DayOfWeek,
+  useCreateHorariosMutation,
+  useDeleteHorariosMutation,
+  useHorariosAgrupadosQuery,
+} from "@/graphql/generated";
+import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCreateUserMutation, useGetUsersQuery } from "../graphql/generated";
 import { createFileRoute } from "@tanstack/react-router";
+import z from "zod";
+import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Componente,
 });
 
-function Componente() {
-  const { data, isLoading, error } = useGetUsersQuery();
-  const client = useQueryClient();
+const horarioSchema = z.object({
+  time: z.iso.time(),
+  dayOfWeek: z.enum(DayOfWeek, "Selecione um dia válido"),
+});
 
-  const { mutate } = useCreateUserMutation({
-    onSuccess: () => {
-      alert("Criado com sucesso!");
+type HorarioSchema = z.infer<typeof horarioSchema>;
+
+const defaultValues: HorarioSchema = {
+  time: "",
+  dayOfWeek: "" as DayOfWeek,
+};
+
+function Componente() {
+  const client = useQueryClient();
+  const { data: horariosData } = useHorariosAgrupadosQuery();
+  const { mutate: createHorario } = useCreateHorariosMutation({
+    onSuccess: () =>
+      client.resetQueries({
+        queryKey: useHorariosAgrupadosQuery.getKey(),
+      }),
+  });
+  const { mutate: deleteHorario } = useDeleteHorariosMutation({
+    onSuccess: () =>
       client.invalidateQueries({
-        queryKey: useGetUsersQuery.getKey(),
-      });
-    },
+        queryKey: useHorariosAgrupadosQuery.getKey(),
+      }),
   });
 
-  if (isLoading) return <p>Carregando...</p>;
-  if (error) return <p>Deu ruim!</p>;
+  const form = useForm({
+    validators: {
+      onSubmit: horarioSchema,
+    },
+    defaultValues,
+    onSubmit: ({ value }) =>
+      createHorario({ input: { time: value.time, day: value.dayOfWeek } }),
+  });
 
   return (
-    <div className="bg-amber-200">
-      <ul>
-        {data?.users.map(user => (
-          <div key={user.id}>
-            {user.name} - {user.email}
+    <div className="flex flex-col gap-5 items-start border rounded p-5">
+      <div className="flex gap-5">
+        {horariosData?.horariosAgrupados.map(day => (
+          <div key={day.day}>
+            <h2>{day.day}</h2>
+            {day.items.map(horario => (
+              <div key={horario.time} className="flex">
+                <div>{horario.time}</div>
+                <button
+                  onClick={() => deleteHorario({ id: horario.id })}
+                  className="text-red-400 hover:text-red-200 cursor-pointer transition-colors"
+                >
+                  <Trash size={20} />
+                </button>
+              </div>
+            ))}
           </div>
         ))}
-      </ul>
-      <button onClick={() => mutate({ name: "Novo", email: "novo@teste.com" })}>
-        Criar User
-      </button>
+      </div>
+
+      <div className="bg-amber-200">
+        <form.Field
+          name="time"
+          children={field => (
+            <>
+              <input
+                value={field.state.value}
+                onChange={e => {
+                  field.handleChange(e.target.value);
+                }}
+                type="time"
+              />
+              <div>
+                {!field.state.meta.isValid && (
+                  <div>
+                    {field.state.meta.errors.map(error => (
+                      <p key={error?.message}>{error?.message}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        />
+
+        <form.Field
+          name="dayOfWeek"
+          children={field => (
+            <>
+              <select
+                value={field.state.value ?? ""}
+                onChange={e => field.handleChange(e.target.value as DayOfWeek)}
+              >
+                <option value="">Selecione um dia</option>
+
+                {Object.values(DayOfWeek).map(day => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+              <div>
+                {!field.state.meta.isValid && (
+                  <div>
+                    {field.state.meta.errors.map(error => (
+                      <p key={error?.message}>{error?.message}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        />
+
+        <button
+          onClick={form.handleSubmit}
+          className="bg-gray-700 text-white rounded-lg p-3 hover:bg-gray-500 transition-colors cursor-pointer"
+        >
+          Criar horario
+        </button>
+      </div>
     </div>
   );
 }

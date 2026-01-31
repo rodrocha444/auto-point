@@ -3,7 +3,7 @@ import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
-import { UsersModule } from "./user/user.module";
+import { HorariosModule } from "./modules/horarios/horarios.module";
 
 @Module({
   imports: [
@@ -17,15 +17,13 @@ import { UsersModule } from "./user/user.module";
       entities: [join(__dirname, "**", "*.entity.{ts,js}")],
       synchronize: true,
     }),
-
-    // 2. Configuração do GraphQL ⚛️
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "../../schema.gql"),
       sortSchema: true,
       playground: true,
     }),
-    UsersModule,
+    HorariosModule,
   ],
 })
 export class AppModule {}

@@ -1,0 +1,17 @@
+query horarios {
+  horarios {
+    id
+    time
+    day
+  }
+}
+
+query horariosAgrupados {
+  horariosAgrupados {
+    day
+    items {
+      id
+      time
+    }
+  }
+}

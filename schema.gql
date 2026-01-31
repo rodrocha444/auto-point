@@ -2,16 +2,44 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateHorariosInput {
+  day: DayOfWeek!
+  time: LocalTime!
+}
+
+"""Dias da semana de Domingo a Sábado"""
+enum DayOfWeek {
+  FRIDAY
+  MONDAY
+  SATURDAY
+  SUNDAY
+  THURSDAY
+  TUESDAY
+  WEDNESDAY
+}
+
+type Horarios {
+  day: DayOfWeek!
+  id: String!
+  time: LocalTime!
+}
+
+type HorariosAgrupados {
+  day: DayOfWeek!
+  items: [Horarios!]!
+}
+
+"""
+A local time string (i.e., with no associated timezone) in 24-hr `HH:mm[:ss[.SSS]]` format, e.g. `14:25` or `14:25:06` or `14:25:06.123`.
+"""
+scalar LocalTime
+
 type Mutation {
-  createUser(email: String!, name: String!): User!
+  createHorarios(input: CreateHorariosInput!): Horarios!
+  deleteHorarios(id: String!): Boolean!
 }
 
 type Query {
-  users: [User!]!
-}
-
-type User {
-  email: String!
-  id: ID!
-  name: String!
+  horarios: [Horarios!]!
+  horariosAgrupados: [HorariosAgrupados!]!
 }
