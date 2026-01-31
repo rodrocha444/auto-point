@@ -1,0 +1,18 @@
+{
+  "name": "auto-point",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "rm -rf node_modules **/*/node_modules"
+  },
+  "author": "Rodrigo Rocha",
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "turbo": "^2.8.1"
+  }
+}
