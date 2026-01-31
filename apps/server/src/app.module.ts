@@ -4,6 +4,8 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
 import { HorariosModule } from "./modules/horarios/horarios.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { TelegramCronModule } from "./modules/telegram-cron/telegram-cron.module";
 
 @Module({
   imports: [
@@ -23,7 +25,9 @@ import { HorariosModule } from "./modules/horarios/horarios.module";
       sortSchema: true,
       playground: true,
     }),
+    ScheduleModule.forRoot(),
     HorariosModule,
+    TelegramCronModule,
   ],
 })
 export class AppModule {}

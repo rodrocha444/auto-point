@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import z from "zod";
 import { Trash } from "lucide-react";
+import { differenceInMinutes, parse } from "date-fns";
 
 export const Route = createFileRoute("/")({
   component: Componente,
@@ -54,22 +55,56 @@ function Componente() {
   return (
     <div className="flex flex-col gap-5 items-start border rounded p-5">
       <div className="flex gap-5">
-        {horariosData?.horariosAgrupados.map(day => (
-          <div key={day.day}>
-            <h2>{day.day}</h2>
-            {day.items.map(horario => (
-              <div key={horario.time} className="flex">
-                <div>{horario.time}</div>
-                <button
-                  onClick={() => deleteHorario({ id: horario.id })}
-                  className="text-red-400 hover:text-red-200 cursor-pointer transition-colors"
-                >
-                  <Trash size={20} />
-                </button>
-              </div>
-            ))}
-          </div>
-        ))}
+        {horariosData?.horariosAgrupados.map(day => {
+          const totalIntervalTimesInMinutes = day.items.reduce(
+            (acc, current, index, array) => {
+              // Só processamos quando o índice é ímpar (segundo elemento do par)
+              if (index % 2 !== 0) {
+                const entrada = parse(
+                  array[index - 1].time,
+                  "HH:mm:ss",
+                  new Date(),
+                );
+                const saida = parse(current.time, "HH:mm:ss", new Date());
+
+                console.log(
+                  array[index - 1].time,
+                  current.time,
+                  entrada,
+                  saida,
+                );
+
+                return acc + differenceInMinutes(saida, entrada);
+              }
+
+              return acc;
+            },
+            0,
+          );
+
+          console.log(totalIntervalTimesInMinutes);
+
+          const formattedTotalTime = `${Math.floor(totalIntervalTimesInMinutes / 60)} horas ${Math.floor(totalIntervalTimesInMinutes % 60)} minutos`;
+
+          return (
+            <div key={day.day}>
+              <h2>{day.day}</h2>
+              {day.items.map(horario => (
+                <div key={horario.time} className="flex">
+                  <div>{horario.time}</div>
+                  <button
+                    onClick={() => deleteHorario({ id: horario.id })}
+                    className="text-red-400 hover:text-red-200 cursor-pointer transition-colors"
+                  >
+                    <Trash size={20} />
+                  </button>
+                </div>
+              ))}
+
+              {formattedTotalTime}
+            </div>
+          );
+        })}
       </div>
 
       <div className="bg-amber-200">

@@ -1,4 +1,5 @@
 import { Field, ObjectType } from "@nestjs/graphql";
+import { GraphQLDateTimeISO } from "graphql-scalars";
 import { GraphQLLocalTime } from "graphql-scalars";
 import { DayOfWeek } from "src/common/enums/day-of-the-week.enum";
 import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
@@ -21,4 +22,8 @@ export class Horarios {
     enum: DayOfWeek,
   })
   day: DayOfWeek;
+
+  @Field(() => GraphQLDateTimeISO)
+  @Column({ type: "timestamptz", nullable: true })
+  lastPointForHorario?: Date;
 }
