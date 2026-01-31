@@ -11,13 +11,13 @@ import { TelegramCronModule } from "./modules/telegram-cron/telegram-cron.module
   imports: [
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: "localhost",
-      port: 5432,
-      username: "admin",
-      password: "adminpassword",
-      database: "autopoint",
+      url: process.env.DATABASE_URL,
       entities: [join(__dirname, "**", "*.entity.{ts,js}")],
       synchronize: true,
+      logging: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
