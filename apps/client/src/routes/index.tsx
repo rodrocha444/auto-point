@@ -1,14 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCreateUserMutation, useGetUsersQuery } from "./graphql/generated";
+import { useCreateUserMutation, useGetUsersQuery } from "../graphql/generated";
+import { createFileRoute } from "@tanstack/react-router";
 
-export function Componente() {
+export const Route = createFileRoute("/")({
+  component: Componente,
+});
+
+function Componente() {
   const { data, isLoading, error } = useGetUsersQuery();
   const client = useQueryClient();
 
   const { mutate } = useCreateUserMutation({
     onSuccess: () => {
-      // O codegen gera query keys para você invalidar o cache fácil
-      // queryClient.invalidateQueries(useGetUsersQuery.getKey())
       alert("Criado com sucesso!");
       client.invalidateQueries({
         queryKey: useGetUsersQuery.getKey(),
@@ -20,15 +23,17 @@ export function Componente() {
   if (error) return <p>Deu ruim!</p>;
 
   return (
-    <div>
+    <div className="bg-amber-200">
       <ul>
         {data?.users.map(user => (
-          <li key={user.id}>
+          <div key={user.id}>
             {user.name} - {user.email}
-          </li>
+          </div>
         ))}
       </ul>
-      <button onClick={() => mutate({ name: "Novo", email: "novo@teste.com" })}>Criar User</button>
+      <button onClick={() => mutate({ name: "Novo", email: "novo@teste.com" })}>
+        Criar User
+      </button>
     </div>
   );
 }
