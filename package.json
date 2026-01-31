@@ -23,7 +23,8 @@
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@swc/core",
-      "esbuild"
+      "esbuild",
+      "@parcel/watcher"
     ]
   }
 }
