@@ -2,12 +2,13 @@
 import { GraphQLClient } from "graphql-request";
 
 const getBaseUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   if (typeof window !== "undefined") {
-    // Retorna "http://localhost:3001/api/graphql"
-    return `${window.location.origin}/api/graphql`;
+    return new URL(apiUrl, window.location.origin).toString();
   }
-  // Fallback para caso rode fora do navegador (SSR/Testes)
-  return "http://localhost:3000/graphql";
+
+  return apiUrl || "http://localhost:3000/graphql";
 };
 
 export const graphQLClient = new GraphQLClient(getBaseUrl());

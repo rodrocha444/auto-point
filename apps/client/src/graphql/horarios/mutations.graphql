@@ -1,9 +1,0 @@
-mutation createHorarios($input: CreateHorariosInput!) {
-  createHorarios(input: $input) {
-    id
-  }
-}
-
-mutation deleteHorarios($id: String!) {
-  deleteHorarios(id: $id)
-}

@@ -3,21 +3,24 @@ import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
-import { HorariosModule } from "./modules/horarios/horarios.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TelegramCronModule } from "./modules/telegram-cron/telegram-cron.module";
+import { ConfigModule } from "@nestjs/config";
+import { UsersModule } from "./modules/users/users.module";
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: "postgres",
       url: process.env.DATABASE_URL,
       entities: [join(__dirname, "**", "*.entity.{ts,js}")],
       synchronize: true,
       logging: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : false,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -26,8 +29,8 @@ import { TelegramCronModule } from "./modules/telegram-cron/telegram-cron.module
       playground: true,
     }),
     ScheduleModule.forRoot(),
-    HorariosModule,
     TelegramCronModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
