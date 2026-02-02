@@ -7,11 +7,13 @@ const config: CodegenConfig = {
   generates: {
     "src/graphql/generated.ts": {
       plugins: [
+        "add",
         "typescript",
         "typescript-operations",
         "typescript-react-query",
       ],
       config: {
+        content: "// @ts-nocheck",
         fetcher: "./fetcher#fetcher",
         exposeQueryKeys: true,
         exposeFetcher: true,
