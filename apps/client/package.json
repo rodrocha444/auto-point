@@ -13,7 +13,7 @@
     "preview": "vite preview --host",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen -w",
-    "start": "npx serve -s dist -l $PORT"
+    "start": "npx serve -s dist -l tcp://0.0.0.0:$PORT"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

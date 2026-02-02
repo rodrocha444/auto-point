@@ -24,7 +24,7 @@ import { PointsModule } from "./modules/points/points.module";
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "../../schema.gql"),
       sortSchema: true,
-      playground: true,
+      playground: process.env.NODE_ENV === "development",
     }),
     ScheduleModule.forRoot(),
     PointsModule,
