@@ -4,9 +4,9 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
 import { ScheduleModule } from "@nestjs/schedule";
-import { TelegramCronModule } from "./modules/telegram-cron/telegram-cron.module";
 import { ConfigModule } from "@nestjs/config";
 import { UsersModule } from "./modules/users/users.module";
+import { PointsModule } from "./modules/points/points.module";
 
 @Module({
   imports: [
@@ -16,7 +16,6 @@ import { UsersModule } from "./modules/users/users.module";
       url: process.env.DATABASE_URL,
       entities: [join(__dirname, "**", "*.entity.{ts,js}")],
       synchronize: true,
-      logging: true,
       ssl:
         process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }
@@ -29,8 +28,8 @@ import { UsersModule } from "./modules/users/users.module";
       playground: true,
     }),
     ScheduleModule.forRoot(),
-    TelegramCronModule,
     UsersModule,
+    PointsModule,
   ],
 })
 export class AppModule {}

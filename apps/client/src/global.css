@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+html,
+body {
+  overflow: hidden;
+}
+
+/* INTERFACE NATIVA */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input,
+textarea,
+#day-picker,
+[contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+img,
+a {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}

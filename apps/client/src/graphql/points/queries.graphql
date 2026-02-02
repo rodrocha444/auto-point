@@ -1,0 +1,13 @@
+query pointsByDate($date: String!) {
+  pointsByDate(date: $date) {
+    id
+    timestamp
+  }
+}
+
+query totalMsInMonth($date: String!) {
+  totalMsInMonth(date: $date) {
+    milliseconds
+    invalidDays
+  }
+}

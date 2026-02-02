@@ -7,12 +7,43 @@ input CreateUserInput {
   username: String!
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Mutation {
+  createPoint(timestamp: DateTime!): Point!
   createUser(input: CreateUserInput!): User!
+  deletePoint(id: String!): String!
+}
+
+type Point {
+  id: String!
+  timestamp: DateTime!
 }
 
 type Query {
+  pointsByDate(
+    """Formato YYYY-MM-DD"""
+    date: String!
+
+    """Timezone IANA (ex: America/Sao_Paulo, UTC...)"""
+    timezone: String = "America/Sao_Paulo"
+  ): [Point!]!
+  totalMsInMonth(
+    """Formato YYYY-MM-DD"""
+    date: String!
+
+    """Timezone IANA (ex: America/Sao_Paulo, UTC...)"""
+    timezone: String = "America/Sao_Paulo"
+  ): TotalMsInMonthDto!
   users: [User!]!
+}
+
+type TotalMsInMonthDto {
+  invalidDays: Int!
+  milliseconds: Int!
 }
 
 type User {
