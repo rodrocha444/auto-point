@@ -10,7 +10,7 @@
     "generate:routes": "tsr generate",
     "build": "pnpm codegen && pnpm generate:routes && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --host",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen -w"
   },
