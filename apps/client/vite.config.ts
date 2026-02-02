@@ -44,7 +44,8 @@ export default defineConfig({
   clearScreen: false,
   customLogger: logger,
   server: {
-    port: 3001,
+    allowedHosts: true, // true = permite qualquer host
+    host: true,
     proxy: {
       "/api": {
         target: "http://localhost:3000",
