@@ -14,6 +14,7 @@ const config: CodegenConfig = {
       config: {
         fetcher: "./fetcher#fetcher",
         exposeQueryKeys: true,
+        exposeFetcher: true,
         reactQueryVersion: 5,
       },
     },

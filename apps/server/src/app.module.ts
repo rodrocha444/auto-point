@@ -5,7 +5,6 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ConfigModule } from "@nestjs/config";
-import { UsersModule } from "./modules/users/users.module";
 import { PointsModule } from "./modules/points/points.module";
 
 @Module({
@@ -28,7 +27,6 @@ import { PointsModule } from "./modules/points/points.module";
       playground: true,
     }),
     ScheduleModule.forRoot(),
-    UsersModule,
     PointsModule,
   ],
 })

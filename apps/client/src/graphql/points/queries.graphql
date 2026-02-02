@@ -11,3 +11,14 @@ query totalMsInMonth($date: String!) {
     invalidDays
   }
 }
+
+query pointsInIntervalWithTotal($input: IntervalDateArgs!) {
+  pointsInIntervalWithTotal(input: $input) {
+    milliseconds
+    invalidDays
+    points {
+      id
+      timestamp
+    }
+  }
+}

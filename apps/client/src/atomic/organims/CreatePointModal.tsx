@@ -2,19 +2,27 @@ import { useCreatePointMutation } from "@/graphql/generated";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/style.css";
+import { DayPicker } from "../molecules/DayPicker";
+
 type CreatePointModalProps = {
   visible: boolean;
   onClose: () => void;
+  fixedDate?: Date;
 };
 
-export function CreatePointModal({ visible, onClose }: CreatePointModalProps) {
+export function CreatePointModal({
+  visible,
+  onClose,
+  fixedDate,
+}: CreatePointModalProps) {
   const client = useQueryClient();
   const { mutate: createPoint } = useCreatePointMutation({
     onSuccess: async () => {
       await client.invalidateQueries({
         queryKey: ["pointsByDate"],
+      });
+      await client.invalidateQueries({
+        queryKey: ["pointsInIntervalWithTotal"],
       });
       onClose();
     },
@@ -24,7 +32,7 @@ export function CreatePointModal({ visible, onClose }: CreatePointModalProps) {
 
   const handleCreatePoint = () => {
     const [hours, minutes] = time.split(":").map(Number);
-    const newDate = new Date(date);
+    const newDate = fixedDate ?? new Date(date);
     newDate.setHours(hours);
     newDate.setMinutes(minutes);
     createPoint({ timestamp: newDate?.toISOString() });
@@ -46,13 +54,15 @@ export function CreatePointModal({ visible, onClose }: CreatePointModalProps) {
             onChange={e => setTime(e.target.value)}
           />
 
-          <DayPicker
-            id="day-picker"
-            mode="single"
-            selected={date}
-            onSelect={date => date && setDate(date)}
-            className="bg-gray-300 p-3 rounded-md"
-          />
+          {!fixedDate && (
+            <DayPicker
+              id="day-picker"
+              mode="single"
+              selected={date}
+              onSelect={date => date && setDate(date)}
+              className="bg-gray-300 p-3 rounded-md"
+            />
+          )}
 
           <button
             onClick={handleCreatePoint}

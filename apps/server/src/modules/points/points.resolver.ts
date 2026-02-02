@@ -6,6 +6,8 @@ import { DateArgs } from "src/common/dtos/DateArgs";
 import { format, fromZonedTime } from "date-fns-tz";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { TotalMsInMonthDto } from "./dtos/total-hours-in-mouth.dto";
+import { IntervalDateArgs } from "src/common/dtos/IntervalDateArgs";
+import { PointsInIntervalWithTotal } from "./dtos/points-in-inteval-with-total";
 
 @Resolver()
 export class PointsResolver {
@@ -101,6 +103,66 @@ export class PointsResolver {
     return {
       milliseconds,
       invalidDays,
+    };
+  }
+
+  @Query(() => PointsInIntervalWithTotal)
+  async pointsInIntervalWithTotal(
+    @Args("input") input: IntervalDateArgs,
+  ): Promise<PointsInIntervalWithTotal> {
+    const startString = `${input.startDate} 00:00:00`;
+    const endString = `${input.endDate} 23:59:59.999`;
+
+    const points = await this.pointRepository.find({
+      where: {
+        timestamp: Between(new Date(startString), new Date(endString)),
+      },
+    });
+
+    const gruposPorDia: Record<string, Date[]> = {};
+
+    points.forEach(ponto => {
+      const timestampInTimezone = fromZonedTime(
+        ponto.timestamp,
+        input.timezone,
+      );
+      const diaKey = format(timestampInTimezone, "MM-dd", {
+        timeZone: input.timezone,
+      });
+
+      if (!gruposPorDia[diaKey]) {
+        gruposPorDia[diaKey] = [];
+      }
+      gruposPorDia[diaKey].push(ponto.timestamp);
+    });
+
+    let invalidDays = 0;
+    let milliseconds = 0;
+
+    for (const dia in gruposPorDia) {
+      const horarios = gruposPorDia[dia];
+
+      horarios.sort((a, b) => a.getTime() - b.getTime());
+
+      const qtd = horarios.length;
+
+      if (qtd % 2 !== 0) {
+        invalidDays++;
+        continue;
+      }
+
+      for (let i = 0; i < qtd; i += 2) {
+        const entrada = horarios[i];
+        const saida = horarios[i + 1];
+        const diferenca = saida.getTime() - entrada.getTime();
+        milliseconds += diferenca;
+      }
+    }
+
+    return {
+      milliseconds,
+      invalidDays,
+      points,
     };
   }
 }

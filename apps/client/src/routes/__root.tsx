@@ -10,11 +10,11 @@ const queryClient = new QueryClient();
 
 function RootComponent() {
   return (
-    <>
+    <main className="bg-gray-950 h-dvh">
       <QueryClientProvider client={queryClient}>
         <Outlet />
         <TanStackRouterDevtools />
       </QueryClientProvider>
-    </>
+    </main>
   );
 }

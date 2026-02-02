@@ -1,34 +1,23 @@
-import { CreatePointModal } from "@/atomic/organims/CreatePointModal";
 import {
   useCreatePointMutation,
   useDeletePointMutation,
   usePointsByDateQuery,
   useTotalMsInMonthQuery,
 } from "@/graphql/generated";
+import { formatMsToHHMM } from "@/utils/formatMsToHHMM";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { CalendarCog, Loader, Trash } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChartLine, List, Loader, Trash } from "lucide-react";
+import { useMemo } from "react";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
 });
 
-function formatTime(milliseconds: number): string {
-  const hh = Math.floor(milliseconds / 3600000)
-    .toString()
-    .padStart(2, "0");
-  const mm = Math.floor((milliseconds % 3600000) / 60000)
-    .toString()
-    .padStart(2, "0");
-  return `${hh}:${mm}`;
-}
-
 function RouteComponent() {
   const today = format(new Date(), "yyyy-MM-dd");
   const client = useQueryClient();
-  const [visibleCreatePointModal, setVisibleCreatePointModal] = useState(false);
 
   const { data: todayPoints } = usePointsByDateQuery({
     date: today,
@@ -83,9 +72,7 @@ function RouteComponent() {
     return total;
   }, [todayPoints]);
 
-  const totalFormattedHHMM = useMemo(() => {
-    return formatTime(totalMilliseconds);
-  }, [totalMilliseconds]);
+  const totalFormattedHHMM = formatMsToHHMM(totalMilliseconds);
 
   const valorAReceber =
     (totalMilliseconds / 3600000) *
@@ -97,20 +84,36 @@ function RouteComponent() {
       parseInt(import.meta.env.VITE_VALOR_POR_HORA || "0");
 
   return (
-    <div className="overflow-hidden h-dvh bg-gray-950 w-full items-center p-5 gap-5 flex flex-col">
-      <div className="text-white text-center">
-        Total de Horas no Mês:{" "}
-        {totalMsInMonth?.totalMsInMonth.milliseconds &&
-          formatTime(totalMsInMonth?.totalMsInMonth.milliseconds)}
-        {totalAReceber && (
-          <div className="text-center">
-            Total a Receber:{" "}
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(totalAReceber)}
+    <div className="overflow-hidden h-full w-full items-center p-5 gap-5 flex flex-col">
+      <div className="flex justify-between w-full items-start">
+        <div className="text-white flex gap-2">
+          <Link
+            to="/stats"
+            className="bg-gray-600 rounded-lg p-3 active:bg-gray-500"
+          >
+            <ChartLine className="text-white" />
+          </Link>
+          <div>
+            Total de Horas no Mês:{" "}
+            {totalMsInMonth?.totalMsInMonth.milliseconds &&
+              formatMsToHHMM(totalMsInMonth?.totalMsInMonth.milliseconds)}
+            {totalAReceber && (
+              <div>
+                Total a Receber:{" "}
+                {new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(totalAReceber)}
+              </div>
+            )}
           </div>
-        )}
+        </div>
+        <Link
+          to="/points"
+          className="bg-gray-600 rounded-lg p-3 active:bg-gray-500"
+        >
+          <List className="text-white" />
+        </Link>
       </div>
 
       <div className="flex flex-col gap-5 w-full flex-1 justify-center">
@@ -166,18 +169,7 @@ function RouteComponent() {
               "Bater Ponto"
             )}
           </button>
-          <button
-            className="bg-gray-600 rounded-lg p-3 active:bg-gray-500"
-            onClick={() => setVisibleCreatePointModal(true)}
-          >
-            <CalendarCog />
-          </button>
         </div>
-
-        <CreatePointModal
-          visible={visibleCreatePointModal}
-          onClose={() => setVisibleCreatePointModal(false)}
-        />
       </div>
     </div>
   );
