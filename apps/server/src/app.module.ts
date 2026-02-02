@@ -14,6 +14,7 @@ import { PointsModule } from "./modules/points/points.module";
       type: "postgres",
       url: process.env.DATABASE_URL,
       entities: [join(__dirname, "**", "*.entity.{ts,js}")],
+      logging: process.env.NODE_ENV === "production",
       synchronize: true,
       ssl:
         process.env.NODE_ENV === "production"

@@ -12,7 +12,7 @@ export class IntervalDateArgs {
   endDate: string;
 
   @Field(() => String, {
-    defaultValue: "America/Sao_Paulo",
+    defaultValue: process.env.DEFAULT_TIMEZONE ?? "America/Sao_Paulo",
     description: "Timezone IANA (ex: America/Sao_Paulo, UTC...)",
     nullable: true,
   })
