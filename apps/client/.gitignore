@@ -25,3 +25,4 @@ dist-ssr
 
 generated.ts
 routeTree.gen.ts
+dev-dist/
