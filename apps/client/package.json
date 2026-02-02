@@ -13,7 +13,7 @@
     "preview": "vite preview --host",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen -w",
-    "start": "npx serve -s dist -l tcp://0.0.0.0:$PORT"
+    "start": "serve -s dist -l $PORT"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -29,6 +29,7 @@
     "react": "^19.2.0",
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.0",
+    "serve": "^14.2.5",
     "tailwindcss": "^4.1.18",
     "zod": "^4.3.6"
   },
