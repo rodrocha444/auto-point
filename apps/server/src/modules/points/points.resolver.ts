@@ -3,7 +3,7 @@ import { Point } from "./points.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Repository } from "typeorm";
 import { DateArgs } from "src/common/dtos/DateArgs";
-import { format, fromZonedTime } from "date-fns-tz";
+import { format, fromZonedTime, toZonedTime } from "date-fns-tz";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { TotalMsInMonthDto } from "./dtos/total-hours-in-mouth.dto";
 import { IntervalDateArgs } from "src/common/dtos/IntervalDateArgs";
@@ -52,21 +52,19 @@ export class PointsResolver {
     const monthStart = startOfMonth(new Date(startString));
     const monthEnd = endOfMonth(new Date(endString));
 
+    const monthStartUTC = fromZonedTime(monthStart, input.timezone);
+    const monthEndUTC = fromZonedTime(monthEnd, input.timezone);
+
     const points = await this.pointRepository.find({
       where: {
-        timestamp: Between(monthStart, monthEnd),
+        timestamp: Between(monthStartUTC, monthEndUTC),
       },
     });
 
     const gruposPorDia: Record<string, Date[]> = {};
 
     points.forEach(ponto => {
-      // Cria uma chave de data (YYYY-MM-DD)
-      // Nota: toISOString usa UTC. Se precisar de fuso local, ajuste aqui.
-      const timestampInTimezone = fromZonedTime(
-        ponto.timestamp,
-        input.timezone,
-      );
+      const timestampInTimezone = toZonedTime(ponto.timestamp, input.timezone);
       const diaKey = format(timestampInTimezone, "MM-dd", {
         timeZone: input.timezone,
       });
@@ -113,19 +111,19 @@ export class PointsResolver {
     const startString = `${input.startDate} 00:00:00`;
     const endString = `${input.endDate} 23:59:59.999`;
 
+    const startUTC = fromZonedTime(startString, input.timezone);
+    const endUTC = fromZonedTime(endString, input.timezone);
+
     const points = await this.pointRepository.find({
       where: {
-        timestamp: Between(new Date(startString), new Date(endString)),
+        timestamp: Between(startUTC, endUTC),
       },
     });
 
     const gruposPorDia: Record<string, Date[]> = {};
 
     points.forEach(ponto => {
-      const timestampInTimezone = fromZonedTime(
-        ponto.timestamp,
-        input.timezone,
-      );
+      const timestampInTimezone = toZonedTime(ponto.timestamp, input.timezone);
       const diaKey = format(timestampInTimezone, "MM-dd", {
         timeZone: input.timezone,
       });
@@ -133,7 +131,7 @@ export class PointsResolver {
       if (!gruposPorDia[diaKey]) {
         gruposPorDia[diaKey] = [];
       }
-      gruposPorDia[diaKey].push(ponto.timestamp);
+      gruposPorDia[diaKey].push(timestampInTimezone);
     });
 
     let invalidDays = 0;
