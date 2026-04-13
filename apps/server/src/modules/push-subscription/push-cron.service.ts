@@ -1,23 +1,52 @@
-// push-cron.service.ts
 import { Injectable, Logger } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import { PushService } from "./push.service";
+import { PointsService } from "../points/points.service";
 
 @Injectable()
 export class PushCronService {
   private readonly logger = new Logger(PushCronService.name);
 
-  constructor(private readonly pushService: PushService) {}
+  constructor(
+    private readonly pushService: PushService,
+    private pointsService: PointsService,
+  ) {}
 
-  // '45 * * * * *' executaria no segundo 45 de cada minuto
-  // CronExpression.EVERY_MINUTE é um atalho para '0 * * * * *'
-  @Cron(CronExpression.EVERY_MINUTE)
-  async handleCron() {
-    this.logger.debug("Executando envio de notificações automáticas...");
+  @Cron("0 */30 20-23 * * *", {
+    timeZone: "America/Sao_Paulo",
+  })
+  async handleLateNightCheck() {
+    const hasEvenPoints = await this.pointsService.hasEvenPointsToday();
 
-    await this.pushService.sendNotificationToAll(
-      "Lembrete Automático",
-      `Agora são ${new Date().toLocaleTimeString()} - Não te esqueças de verificar o app!`,
-    );
+    if (!hasEvenPoints) {
+      this.logger.debug(
+        "[Cron 20h+] Verificando ponto ímpar após o horário comercial.",
+      );
+
+      await this.pushService.sendNotificationToAll(
+        "Ainda por aqui?",
+        "Já passou das 20h e seu ponto continua aberto. Não esqueça de bater o ponto de saída!",
+      );
+    }
+  }
+
+  @Cron("0 0 * * * *", {
+    timeZone: "America/Sao_Paulo",
+  })
+  async handleOvertimeCheck() {
+    const _8HOURS_IN_MS = 8 * 60 * 60 * 1000;
+    const hasEvenPoints = await this.pointsService.hasEvenPointsToday();
+    const totalTimeInMS = await this.pointsService.totalTimeInMsToday();
+
+    if (!hasEvenPoints && totalTimeInMS > _8HOURS_IN_MS) {
+      this.logger.debug(
+        "[Cron 8h+] Usuário com mais de 8h de trabalho e ponto aberto.",
+      );
+
+      await this.pushService.sendNotificationToAll(
+        "Jornada Concluída?",
+        "Você já completou mais de 8 horas de trabalho hoje. Que tal fechar o ponto?",
+      );
+    }
   }
 }
