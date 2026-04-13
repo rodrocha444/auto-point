@@ -1,0 +1,7 @@
+# src/graphql/mutations/SavePushSubscription.graphql
+mutation SavePushSubscription($subscription: PushSubscriptionInput!) {
+  savePushSubscription(subscription: $subscription) {
+    id
+    endpoint
+  }
+}

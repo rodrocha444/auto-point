@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ConfigModule } from "@nestjs/config";
 import { PointsModule } from "./modules/points/points.module";
+import { PushModule } from "./modules/push-subscription/push.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PointsModule } from "./modules/points/points.module";
     }),
     ScheduleModule.forRoot(),
     PointsModule,
+    PushModule,
   ],
 })
 export class AppModule {}

@@ -21,6 +21,7 @@ input IntervalDateArgs {
 type Mutation {
   createPoint(timestamp: DateTime!): Point!
   deletePoint(id: String!): String!
+  savePushSubscription(subscription: PushSubscriptionInput!): PushSubscription!
 }
 
 type Point {
@@ -32,6 +33,25 @@ type PointsInIntervalWithTotal {
   invalidDays: Int!
   milliseconds: Int!
   points: [Point!]!
+}
+
+type PushSubscription {
+  auth: String!
+  createdAt: DateTime!
+  endpoint: String!
+  id: ID!
+  p256dh: String!
+  userId: String!
+}
+
+input PushSubscriptionInput {
+  endpoint: String!
+  keys: PushSubscriptionKeysInput!
+}
+
+input PushSubscriptionKeysInput {
+  auth: String!
+  p256dh: String!
 }
 
 type Query {

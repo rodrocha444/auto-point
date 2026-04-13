@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
         srcDir: "src",
         filename: "sw.ts",
         devOptions: {
+          type: "module", // Isso resolve o erro do "import"
           enabled: true,
         },
         includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
