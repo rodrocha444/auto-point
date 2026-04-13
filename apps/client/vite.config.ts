@@ -14,14 +14,18 @@ export default defineConfig(({ mode }) => {
     plugins: [
       VitePWA({
         registerType: "autoUpdate",
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
         devOptions: {
           enabled: true,
         },
         includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
         manifest: {
-          name: "My Awesome App",
-          short_name: "MyApp",
-          description: "My Awesome App description",
+          display: "standalone",
+          name: "Auto Point",
+          short_name: "Auto Point",
+          description: "Aplicação para controle de ponto",
           theme_color: "#ffffff",
           icons: [
             {

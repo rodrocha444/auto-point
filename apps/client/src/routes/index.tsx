@@ -4,6 +4,7 @@ import {
   usePointsByDateQuery,
   useTotalMsInMonthQuery,
 } from "@/graphql/generated";
+import { useNotificationPermission } from "@/hooks/useNotificationPermission";
 import { formatMsToHHMM } from "@/utils/formatMsToHHMM";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -16,6 +17,8 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
+  const { permission, requestPermission } = useNotificationPermission();
+
   const today = format(new Date(), "yyyy-MM-dd");
   const client = useQueryClient();
 
@@ -157,7 +160,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="flex gap-2 w-full">
+        <div className="flex flex-col gap-2 w-full">
           <button
             className="bg-gray-400 w-full rounded-lg p-3 active:bg-gray-200 transition-colors flex justify-center"
             onClick={() => createPoint({ timestamp: new Date() })}
@@ -168,6 +171,15 @@ function RouteComponent() {
             ) : (
               "Bater Ponto"
             )}
+          </button>
+          <button
+            className="bg-gray-400 w-full rounded-lg p-3 active:bg-gray-200 transition-colors flex justify-center"
+            onClick={requestPermission}
+            disabled={permission === "granted"}
+          >
+            {permission === "granted"
+              ? "Notificações Ativadas"
+              : "Ativar Notificações"}
           </button>
         </div>
       </div>
