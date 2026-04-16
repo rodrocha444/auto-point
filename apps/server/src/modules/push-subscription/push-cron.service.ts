@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { PushService } from "./push.service";
 import { PointsService } from "../points/points.service";
 
@@ -12,7 +12,7 @@ export class PushCronService {
     private pointsService: PointsService,
   ) {}
 
-  @Cron("0 */30 20-23 * * *", {
+  @Cron(CronExpression.EVERY_MINUTE, {
     timeZone: "America/Sao_Paulo",
   })
   async handleLateNightCheck() {
@@ -27,10 +27,15 @@ export class PushCronService {
         "Ainda por aqui?",
         "Já passou das 20h e seu ponto continua aberto. Não esqueça de bater o ponto de saída!",
       );
+    } else {
+      this.logger.debug(
+        "[Cron 20h+] Usuário com ponto ímpar após o horário comercial.",
+      );
+      console.log({ hasEvenPoints });
     }
   }
 
-  @Cron("0 0 * * * *", {
+  @Cron(CronExpression.EVERY_MINUTE, {
     timeZone: "America/Sao_Paulo",
   })
   async handleOvertimeCheck() {
@@ -47,6 +52,11 @@ export class PushCronService {
         "Jornada Concluída?",
         "Você já completou mais de 8 horas de trabalho hoje. Que tal fechar o ponto?",
       );
+    } else {
+      this.logger.debug(
+        "[Cron 8h+] Usuário com menos de 8h de trabalho ou ponto fechado.",
+      );
+      console.log({ hasEvenPoints, totalTimeInMS });
     }
   }
 }
