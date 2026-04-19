@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { Cron } from "@nestjs/schedule";
 import { PushService } from "./push.service";
 import { PointsService } from "../points/points.service";
 
@@ -12,7 +12,7 @@ export class PushCronService {
     private pointsService: PointsService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron("0 */30 20-23 * * *", {
     timeZone: "America/Sao_Paulo",
   })
   async handleLateNightCheck() {
@@ -35,7 +35,7 @@ export class PushCronService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron("0 0 * * * *", {
     timeZone: "America/Sao_Paulo",
   })
   async handleOvertimeCheck() {
