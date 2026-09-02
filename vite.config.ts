@@ -9,6 +9,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const port = Number(env.PORT) || 3333;
 
   return {
     plugins: [
@@ -54,15 +55,19 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: true,
       host: "0.0.0.0",
-      port: Number(env.PORT) || 3333,
+      port,
+      strictPort: true,
       watch: {
         usePolling: true,
+      },
+      hmr: {
+        clientPort: port,
       },
     },
     preview: {
       host: "0.0.0.0",
       allowedHosts: true,
-      port: Number(env.PORT) || 3333,
+      port,
     },
     resolve: {
       alias: {
