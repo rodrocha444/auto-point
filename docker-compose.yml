@@ -1,15 +1,18 @@
 services:
-  postgres:
-    image: postgres:18-alpine
-    container_name: auto-point-db
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auto-point-app
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: adminpassword
-      POSTGRES_DB: autopoint
+      - "${PORT:-3001}:${PORT:-3001}"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
