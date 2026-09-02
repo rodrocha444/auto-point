@@ -162,6 +162,43 @@ export async function unsubscribeFromPush(): Promise<boolean> {
   return false;
 }
 
+function mergeAlertsWithServer(
+  localAlerts: CustomAlert[],
+  serverAlertsJson: string | null,
+): CustomAlert[] {
+  if (!serverAlertsJson) return localAlerts;
+  try {
+    const serverAlerts: CustomAlert[] = JSON.parse(serverAlertsJson);
+    if (!Array.isArray(serverAlerts)) return localAlerts;
+
+    const today = getTodayKey();
+    const serverMap = new Map(serverAlerts.map((a) => [a.id, a]));
+
+    return localAlerts.map((local) => {
+      const server = serverMap.get(local.id);
+      if (!server) return local;
+
+      const lastNotifiedDate =
+        server.lastNotifiedDate === today
+          ? server.lastNotifiedDate
+          : local.lastNotifiedDate;
+
+      const enabled =
+        server.lastNotifiedDate === today && !server.enabled && local.type === "exact_time"
+          ? false
+          : local.enabled;
+
+      return {
+        ...local,
+        lastNotifiedDate,
+        enabled,
+      };
+    });
+  } catch {
+    return localAlerts;
+  }
+}
+
 export async function saveSubscriptionToDb(
   subscription: PushSubscription,
   alerts: CustomAlert[] = getCustomAlerts(),
@@ -182,7 +219,13 @@ export async function saveSubscriptionToDb(
     .limit(1);
 
   const now = new Date().toISOString();
-  const alertsJson = JSON.stringify(alerts);
+  const mergedAlerts =
+    existing.length > 0 && existing[0].alerts
+      ? mergeAlertsWithServer(alerts, existing[0].alerts)
+      : alerts;
+
+  saveCustomAlerts(mergedAlerts);
+  const alertsJson = JSON.stringify(mergedAlerts);
 
   if (existing.length > 0) {
     await db

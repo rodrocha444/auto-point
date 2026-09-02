@@ -31,7 +31,7 @@ self.addEventListener("push", (event) => {
     icon: "/ap-192x192.png",
     badge: "/ap-192x192.png",
     data,
-    tag: "work-hours-completed",
+    tag: (data?.tag as string) || "ap-alert-" + Date.now(),
     renotify: true,
     vibrate: [200, 100, 200, 100, 200],
   };

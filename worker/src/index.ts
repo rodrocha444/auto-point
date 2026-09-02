@@ -131,7 +131,7 @@ async function processScheduledNotifications(
 
         let shouldTrigger = false;
         const pushTitle = alert.label;
-        const pushBody = alert.description || "";
+        const pushBody = alert.description?.trim() ? alert.description.trim() : " ";
 
         if (alert.type === "exact_time" && alert.time) {
           // Dispara se o horário atual é igual ou posterior ao horário configurado hoje
@@ -151,7 +151,7 @@ async function processScheduledNotifications(
               JSON.stringify({
                 title: pushTitle,
                 body: pushBody,
-                data: { url: "/" },
+                data: { url: "/", tag: `ap-${alert.id}-${Date.now()}` },
               }),
             );
             sent++;
