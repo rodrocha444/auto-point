@@ -7,6 +7,7 @@ import {
 import { formatMsToHHMM } from "@/utils/formatMsToHHMM";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import {
   BarChart3,
@@ -92,7 +93,9 @@ function RouteComponent() {
   const formattedBuildTime = useMemo(() => {
     try {
       const date = new Date(__APP_BUILD_TIME__);
-      return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+      return formatInTimeZone(date, "America/Sao_Paulo", "dd/MM/yyyy 'às' HH:mm", {
+        locale: ptBR,
+      });
     } catch {
       return null;
     }

@@ -36,6 +36,7 @@
     "react-dom": "^19.2.0",
     "serve": "^14.2.5",
     "tailwindcss": "^4.1.18",
+    "workbox-window": "^7.4.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {

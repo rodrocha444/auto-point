@@ -4,9 +4,13 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { Theme } from "@radix-ui/themes";
+import { registerSW } from "virtual:pwa-register";
 
 import "@radix-ui/themes/styles.css";
 import "./global.css";
+
+// Auto-atualização do Service Worker a cada novo deploy
+registerSW({ immediate: true });
 
 const queryClient = new QueryClient();
 
