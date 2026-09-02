@@ -1,9 +1,0 @@
-mutation createPoint($timestamp: DateTime!) {
-  createPoint(timestamp: $timestamp) {
-    id
-  }
-}
-
-mutation deletePoint($id: String!) {
-  deletePoint(id: $id)
-}
