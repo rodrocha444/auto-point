@@ -1,14 +1,27 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Outlet, createRootRoute, Link } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import eruda from "eruda";
 import { useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export const Route = createRootRoute({
   component: RootComponent,
+  notFoundComponent: () => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
+      <h2 className="text-xl font-bold text-white">Página não encontrada</h2>
+      <p className="text-sm text-zinc-400">
+        A rota acessada não existe ou mudou de endereço.
+      </p>
+      <Link
+        to="/"
+        className="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-500 transition-colors"
+      >
+        Voltar ao Início
+      </Link>
+    </div>
+  ),
 });
 
 function RootComponent() {
@@ -27,10 +40,9 @@ function RootComponent() {
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      eruda.init();
-      return () => {
-        eruda.destroy();
-      };
+      import("eruda").then((erudaModule) => {
+        erudaModule.default.init();
+      });
     }
   }, []);
 

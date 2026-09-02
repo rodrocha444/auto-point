@@ -6,12 +6,16 @@ import { routeTree } from "./routeTree.gen";
 import { Theme } from "@radix-ui/themes";
 
 import "@radix-ui/themes/styles.css";
+import "./global.css";
 
 const queryClient = new QueryClient();
 
+const rawBaseUrl = import.meta.env.BASE_URL || "/";
+const basepath = rawBaseUrl === "/" ? undefined : rawBaseUrl.replace(/\/$/, "");
+
 const router = createRouter({
   routeTree,
-  basepath: import.meta.env.BASE_URL,
+  basepath,
   defaultPreload: "intent",
 });
 

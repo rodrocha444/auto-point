@@ -32,17 +32,28 @@ export default defineConfig(({ mode }) => {
           name: "Auto Point",
           short_name: "Auto Point",
           description: "Aplicação PWA para controle de ponto",
-          theme_color: "#ffffff",
+          start_url:
+            process.env.BASE_PATH ||
+            env.BASE_PATH ||
+            (mode === "production" ? "/auto-point/" : "/"),
+          scope:
+            process.env.BASE_PATH ||
+            env.BASE_PATH ||
+            (mode === "production" ? "/auto-point/" : "/"),
+          theme_color: "#030712",
+          background_color: "#030712",
           icons: [
             {
               src: "ap-192x192.png",
               sizes: "192x192",
               type: "image/png",
+              purpose: "any maskable",
             },
             {
               src: "ap-512x512.png",
               sizes: "512x512",
               type: "image/png",
+              purpose: "any maskable",
             },
           ],
         },
