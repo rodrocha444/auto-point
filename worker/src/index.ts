@@ -13,6 +13,7 @@ interface CustomAlert {
   id: string;
   type: "exact_time" | "work_duration";
   label: string;
+  description?: string;
   time?: string;
   durationMinutes?: number;
   onlyIfWorking: boolean;
@@ -62,7 +63,7 @@ async function processScheduledNotifications(
   });
 
   webpush.setVapidDetails(
-    env.VAPID_SUBJECT || "mailto:contato@autopoint.local",
+    env.VAPID_SUBJECT || "mailto:contato@autopoint.app",
     env.VAPID_PUBLIC_KEY,
     env.VAPID_PRIVATE_KEY,
   );
@@ -129,24 +130,17 @@ async function processScheduledNotifications(
         if (alert.lastNotifiedDate === spDateStr) continue;
 
         let shouldTrigger = false;
-        let pushTitle = "Auto Point";
-        let pushBody = "";
+        const pushTitle = alert.label;
+        const pushBody = alert.description || "";
 
         if (alert.type === "exact_time" && alert.time) {
           // Dispara se o horário atual é igual ou posterior ao horário configurado hoje
           if (spTimeStr >= alert.time) {
             shouldTrigger = true;
-            pushTitle = `Auto Point - ${alert.label || "Lembrete"} ⏰`;
-            pushBody = `Lembrete agendado: ${alert.label}! (Horário: ${alert.time})`;
           }
         } else if (alert.type === "work_duration" && alert.durationMinutes) {
           if (isPointOpen && totalWorkedMinutes >= alert.durationMinutes) {
             shouldTrigger = true;
-            const h = Math.floor(alert.durationMinutes / 60);
-            const m = alert.durationMinutes % 60;
-            const durationFormatted = `${h}h${m > 0 ? ` ${m}m` : ""}`;
-            pushTitle = `Auto Point - ${alert.label || "Meta de Horas"} 🎯`;
-            pushBody = `Você atingiu sua meta de ${durationFormatted} trabalhadas hoje e o ponto continua aberto!`;
           }
         }
 

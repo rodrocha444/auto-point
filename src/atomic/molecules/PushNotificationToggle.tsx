@@ -46,6 +46,7 @@ export function PushNotificationToggle({
   // Formulário de aviso (novo ou edição)
   const [formType, setFormType] = useState<AlertType>("exact_time");
   const [formLabel, setFormLabel] = useState("");
+  const [formDescription, setFormDescription] = useState("");
   const [formTime, setFormTime] = useState("12:00");
   const [formHours, setFormHours] = useState(8);
   const [formMinutes, setFormMinutes] = useState(0);
@@ -60,6 +61,7 @@ export function PushNotificationToggle({
     setEditingAlertId(null);
     setFormType("exact_time");
     setFormLabel("");
+    setFormDescription("");
     setFormTime("12:00");
     setFormHours(8);
     setFormMinutes(0);
@@ -71,6 +73,7 @@ export function PushNotificationToggle({
     setEditingAlertId(alert.id);
     setFormType(alert.type);
     setFormLabel(alert.label);
+    setFormDescription(alert.description || "");
     if (alert.type === "exact_time") {
       setFormTime(alert.time || "12:00");
     } else {
@@ -103,6 +106,7 @@ export function PushNotificationToggle({
       (formType === "exact_time"
         ? `Aviso às ${formTime}`
         : `Meta de ${formHours}h${formMinutes > 0 ? ` ${formMinutes}m` : ""}`);
+    const description = formDescription.trim() || undefined;
 
     if (editingAlertId) {
       const existing = alerts.find((a) => a.id === editingAlertId);
@@ -111,6 +115,7 @@ export function PushNotificationToggle({
           ...existing,
           type: formType,
           label,
+          description,
           time: formType === "exact_time" ? formTime : undefined,
           durationMinutes:
             formType === "work_duration"
@@ -125,6 +130,7 @@ export function PushNotificationToggle({
         addAlert({
           type: "exact_time",
           label,
+          description,
           time: formTime,
           onlyIfWorking: formOnlyIfWorking,
           enabled: true,
@@ -134,6 +140,7 @@ export function PushNotificationToggle({
         addAlert({
           type: "work_duration",
           label,
+          description,
           durationMinutes: totalMinutes,
           onlyIfWorking: true,
           enabled: true,
@@ -326,6 +333,11 @@ export function PushNotificationToggle({
                           <span className="text-xs font-medium truncate">
                             {alert.label}
                           </span>
+                          {alert.description && (
+                            <span className="text-[11px] text-zinc-300 truncate">
+                              {alert.description}
+                            </span>
+                          )}
                           <span className="text-[10px] text-zinc-400 font-mono">
                             {alert.type === "exact_time"
                               ? `Às ${alert.time}`
@@ -423,13 +435,27 @@ export function PushNotificationToggle({
                 {/* Nome do Aviso */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] uppercase text-zinc-400 font-medium">
-                    Nome do Aviso / Lembrete
+                    Título do Aviso / Notificação
                   </label>
                   <input
                     type="text"
                     placeholder={formType === "exact_time" ? "Ex: Almoço, Reunião, Pausa" : "Ex: Meta de 8h"}
                     value={formLabel}
                     onChange={(e) => setFormLabel(e.target.value)}
+                    className="p-2 border border-zinc-700 rounded-xl bg-zinc-800 text-white text-xs focus:outline-none focus:border-violet-500"
+                  />
+                </div>
+
+                {/* Descrição do Aviso (Opcional) */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase text-zinc-400 font-medium">
+                    Descrição (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Não esquecer de registrar a saída"
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
                     className="p-2 border border-zinc-700 rounded-xl bg-zinc-800 text-white text-xs focus:outline-none focus:border-violet-500"
                   />
                 </div>

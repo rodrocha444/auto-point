@@ -12,15 +12,15 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 self.addEventListener("push", (event) => {
   let title = "Auto Point";
-  let body = "Você atingiu 8 horas de trabalho no dia!";
+  let body = "";
   let data: Record<string, unknown> = { url: "/" };
 
   if (event.data) {
     try {
       const payload = event.data.json();
-      if (payload.title) title = payload.title;
-      if (payload.body) body = payload.body;
-      if (payload.data) data = payload.data;
+      if (payload.title !== undefined) title = payload.title;
+      if (payload.body !== undefined) body = payload.body;
+      if (payload.data !== undefined) data = payload.data;
     } catch {
       body = event.data.text();
     }

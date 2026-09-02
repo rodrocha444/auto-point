@@ -8,6 +8,7 @@ export interface CustomAlert {
   id: string;
   type: AlertType;
   label: string;
+  description?: string; // Descrição opcional da notificação
   time?: string; // "HH:mm" (ex: "12:00")
   durationMinutes?: number; // minutos trabalhados (ex: 480)
   onlyIfWorking: boolean; // Só notificar se ponto estiver aberto

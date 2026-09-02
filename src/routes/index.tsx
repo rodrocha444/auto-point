@@ -23,6 +23,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { PushNotificationToggle } from "@/atomic/molecules/PushNotificationToggle";
 import { CreatePointModal } from "@/atomic/organims/CreatePointModal";
+import buildTime from "virtual:build-time";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -92,7 +93,7 @@ function RouteComponent() {
 
   const formattedBuildTime = useMemo(() => {
     try {
-      const date = new Date(__APP_BUILD_TIME__);
+      const date = new Date(buildTime);
       return formatInTimeZone(date, "America/Sao_Paulo", "dd/MM/yyyy 'às' HH:mm", {
         locale: ptBR,
       });

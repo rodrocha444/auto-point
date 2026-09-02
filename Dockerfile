@@ -2,6 +2,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Install git for repository metadata in dev
+RUN apk add --no-cache git
+
 # Enable pnpm matching local version
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
