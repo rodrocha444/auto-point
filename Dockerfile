@@ -18,6 +18,6 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Expose dev server port
-EXPOSE 3000
+EXPOSE 3333
 
 CMD ["pnpm", "dev"]

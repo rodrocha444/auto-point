@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: true,
       host: "0.0.0.0",
-      port: Number(env.PORT) || 3000,
+      port: Number(env.PORT) || 3333,
       watch: {
         usePolling: true,
       },
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => {
     preview: {
       host: "0.0.0.0",
       allowedHosts: true,
-      port: Number(env.PORT) || 3000,
+      port: Number(env.PORT) || 3333,
     },
     resolve: {
       alias: {
