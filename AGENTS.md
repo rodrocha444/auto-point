@@ -6,9 +6,9 @@
 - **Ação sobre Explicação:** Priorize executar ações diretamente com ferramentas e retorne apenas o resumo essencial do que foi feito.
 - **Linguagem:** Responder prioritariamente em Português (pt-BR).
 
-## 🔒 Regras de Controle de Versão (Git)
-- **Commits e Pushes sob Demanda:** NUNCA execute `git commit` ou `git push` automaticamente por iniciativa própria.
-- **Apenas sob comando explícito:** Só crie commits ou envie alterações (push) quando o usuário solicitar expressamente (ex: "faça o commit", "comite tudo", "dê push").
+## 🔒 Controle de Versão e Deploy (Git & GitHub Pages)
+- **Apenas sob comando explícito:** NUNCA execute `git commit`, `git push` ou deploy (`pnpm run deploy` / `gh-pages`) automaticamente por iniciativa própria.
+- **Acionamento sob demanda:** Só crie commits, envie alterações ou realize deploys quando o usuário solicitar expressamente (ex: "faça o commit", "comite tudo", "dê push", "fazer deploy", "deploy").
 
 ## 🛠️ Stack e Padrões Técnicos
 - **Gerenciador de Pacotes:** `pnpm`.
