@@ -28,6 +28,7 @@ function RouteComponent() {
 
   const { mutate: createPoint, isPending: isCreatingPoint } = useCreatePoint();
   const { mutate: deletePoint } = useDeletePoint();
+  const { subscribeToPush, isSubscribing } = usePushSubscription();
 
   const totalMilliseconds = useMemo(() => {
     const points = todayPoints;

@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   const port = Number(env.PORT) || 3333;
 
   return {
+    base: process.env.BASE_PATH || (process.env.GITHUB_ACTIONS ? "/auto-point/" : "/"),
     plugins: [
       VitePWA({
         registerType: "autoUpdate",
