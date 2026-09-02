@@ -26,7 +26,9 @@ export async function ensureDbReady() {
           CREATE TABLE IF NOT EXISTS points (
             id TEXT PRIMARY KEY,
             timestamp TEXT NOT NULL
-          );
+          )
+        `);
+        await client.execute(`
           CREATE TABLE IF NOT EXISTS push_subscriptions (
             id TEXT PRIMARY KEY,
             endpoint TEXT NOT NULL,
@@ -35,7 +37,7 @@ export async function ensureDbReady() {
             target_notify_at TEXT,
             notified INTEGER DEFAULT 0,
             updated_at TEXT NOT NULL
-          );
+          )
         `);
       } catch (error) {
         console.warn("Auto-initialization of tables skipped or failed:", error);
