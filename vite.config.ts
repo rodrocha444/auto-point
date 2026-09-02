@@ -12,7 +12,10 @@ export default defineConfig(({ mode }) => {
   const port = Number(env.PORT) || 3333;
 
   return {
-    base: process.env.BASE_PATH || (process.env.GITHUB_ACTIONS ? "/auto-point/" : "/"),
+    base:
+      process.env.BASE_PATH ||
+      env.BASE_PATH ||
+      (mode === "production" ? "/auto-point/" : "/"),
     plugins: [
       VitePWA({
         registerType: "autoUpdate",
@@ -51,6 +54,9 @@ export default defineConfig(({ mode }) => {
       }),
       react(),
     ],
+    define: {
+      __APP_BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    },
     clearScreen: false,
     customLogger: logger,
     server: {

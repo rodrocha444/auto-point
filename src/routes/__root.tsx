@@ -3,7 +3,9 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import eruda from "eruda";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -13,6 +15,15 @@ function RootComponent() {
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
   const isBusy = isFetching > 0 || isMutating > 0;
+
+  const formattedBuildTime = useMemo(() => {
+    try {
+      const date = new Date(__APP_BUILD_TIME__);
+      return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -44,6 +55,13 @@ function RootComponent() {
 
       <div className="w-full max-w-md min-h-dvh flex flex-col flex-1 relative px-4 py-5 sm:px-6">
         <Outlet />
+        {formattedBuildTime && (
+          <footer className="w-full text-center pt-8 pb-3 mt-auto">
+            <p className="text-[10px] text-zinc-500 font-mono tracking-tight select-none">
+              Última atualização: {formattedBuildTime}
+            </p>
+          </footer>
+        )}
       </div>
       {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
     </main>

@@ -37,10 +37,6 @@ export function PushNotificationToggle({
     return format(new Date(targetIso), "HH:mm");
   }, [todayPoints, tempHours, tempMinutes]);
 
-  if (!isSupported) {
-    return null;
-  }
-
   const handleOpen = () => {
     setTempHours(Math.floor(targetMinutes / 60));
     setTempMinutes(targetMinutes % 60);
@@ -139,19 +135,23 @@ export function PushNotificationToggle({
                   Notificações de Sistema
                 </span>
                 <span className="text-[11px] text-zinc-400">
-                  {isSubscribed
-                    ? "Ativas (mesmo com app fechado)"
-                    : "Desativadas"}
+                  {!isSupported
+                    ? "Indisponível neste contexto"
+                    : isSubscribed
+                      ? "Ativas (mesmo com app fechado)"
+                      : "Desativadas"}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleToggleSubscription}
-                disabled={isLoading || permission === "denied"}
+                disabled={!isSupported || isLoading || permission === "denied"}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  isSubscribed
-                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30"
-                    : "bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/30"
+                  !isSupported
+                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                    : isSubscribed
+                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30"
+                      : "bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/30"
                 }`}
               >
                 {isLoading ? (
@@ -164,7 +164,13 @@ export function PushNotificationToggle({
               </button>
             </div>
 
-            {permission === "denied" && (
+            {!isSupported && (
+              <p className="text-[11px] text-amber-400/90 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 leading-relaxed">
+                Notificações Push exigem conexão segura (HTTPS). No iOS, funcionam apenas quando acessado via HTTPS e adicionado à Tela de Início (iOS 16.4+).
+              </p>
+            )}
+
+            {isSupported && permission === "denied" && (
               <p className="text-[11px] text-rose-400 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
                 Permissão de notificações bloqueada no navegador. Habilite nas configurações do site.
               </p>
