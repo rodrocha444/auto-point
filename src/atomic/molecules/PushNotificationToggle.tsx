@@ -346,7 +346,7 @@ export function PushNotificationToggle({
                                     ? ` ${(alert.durationMinutes || 0) % 60}m`
                                     : ""
                                 }`}
-                            {alert.onlyIfWorking ? " • Se trabalhando" : " • Sempre"}
+                            {alert.onlyIfWorking ? " • Se trabalhando" : " • Único"}
                           </span>
                         </div>
                       </div>

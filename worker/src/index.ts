@@ -156,6 +156,9 @@ async function processScheduledNotifications(
             );
             sent++;
             alert.lastNotifiedDate = spDateStr;
+            if (alert.type === "exact_time") {
+              alert.enabled = false;
+            }
             subscriptionUpdated = true;
           } catch (error: any) {
             failed++;
