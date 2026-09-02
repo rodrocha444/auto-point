@@ -89,9 +89,14 @@ function RouteComponent() {
     totalMsInMonth?.milliseconds &&
     (totalMsInMonth?.milliseconds / 3600000) * hourlyRate;
 
-  const formattedDate = format(currentTime, "EEEE, d 'de' MMMM", {
-    locale: ptBR,
-  });
+  const formattedBuildTime = useMemo(() => {
+    try {
+      const date = new Date(__APP_BUILD_TIME__);
+      return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    } catch {
+      return null;
+    }
+  }, []);
 
   return (
     <div className="flex flex-col flex-1 gap-6 pb-6 animate-in fade-in duration-300">
@@ -105,7 +110,9 @@ function RouteComponent() {
             <h1 className="font-bold text-lg leading-tight tracking-tight text-white">
               Auto Point
             </h1>
-            <p className="text-xs text-zinc-400 capitalize">{formattedDate}</p>
+            <p className="text-xs text-zinc-400">
+              {formattedBuildTime ? `Atualizado: ${formattedBuildTime}` : ""}
+            </p>
           </div>
         </div>
 
