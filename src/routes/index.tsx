@@ -11,6 +11,7 @@ import { ptBR } from "date-fns/locale";
 import {
   BarChart3,
   CalendarDays,
+  CalendarPlus,
   Clock,
   Fingerprint,
   Loader2,
@@ -19,6 +20,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { PushNotificationToggle } from "@/atomic/molecules/PushNotificationToggle";
+import { CreatePointModal } from "@/atomic/organims/CreatePointModal";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -26,6 +29,7 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [visibleCreatePointModal, setVisibleCreatePointModal] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -106,6 +110,7 @@ function RouteComponent() {
         </div>
 
         <nav className="flex items-center gap-2">
+          <PushNotificationToggle todayPoints={todayPoints} />
           <Link
             to="/points"
             className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 shadow-sm"
@@ -210,7 +215,22 @@ function RouteComponent() {
             </>
           )}
         </button>
+
+        <button
+          type="button"
+          onClick={() => setVisibleCreatePointModal(true)}
+          className="mt-3 text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1.5 cursor-pointer font-medium py-1 px-3 rounded-lg hover:bg-zinc-800/60"
+        >
+          <CalendarPlus className="w-3.5 h-3.5 text-violet-400" />
+          <span>Registrar Ponto Manual</span>
+        </button>
       </section>
+
+      {/* Modal de Ponto Manual */}
+      <CreatePointModal
+        visible={visibleCreatePointModal}
+        onClose={() => setVisibleCreatePointModal(false)}
+      />
 
       {/* Metric Cards Grid */}
       <section className="grid grid-cols-2 gap-3">
@@ -269,10 +289,19 @@ function RouteComponent() {
           <h2 className="text-sm font-semibold text-zinc-200">
             Registros de Hoje
           </h2>
-          <span className="text-xs text-zinc-400 font-mono">
-            {todayPoints?.length ?? 0}{" "}
-            {todayPoints?.length === 1 ? "registro" : "registros"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-400 font-mono">
+              {todayPoints?.length ?? 0}{" "}
+              {todayPoints?.length === 1 ? "registro" : "registros"}
+            </span>
+            <button
+              onClick={() => setVisibleCreatePointModal(true)}
+              className="p-1 rounded-lg text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 transition-colors cursor-pointer"
+              title="Adicionar ponto manual hoje"
+            >
+              <CalendarPlus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {isLoadingPoints ? (
@@ -331,9 +360,12 @@ function RouteComponent() {
           <div className="flex flex-col items-center justify-center py-8 text-zinc-500 text-center">
             <Clock className="w-8 h-8 stroke-1 text-zinc-600 mb-2" />
             <p className="text-xs">Nenhum ponto registrado hoje.</p>
-            <p className="text-[11px] text-zinc-600 mt-0.5">
-              Clique em "Bater Ponto" para iniciar seu dia.
-            </p>
+            <button
+              onClick={() => setVisibleCreatePointModal(true)}
+              className="mt-2 text-xs text-violet-400 hover:text-violet-300 font-semibold cursor-pointer underline underline-offset-4"
+            >
+              + Adicionar ponto manualmente
+            </button>
           </div>
         )}
       </section>

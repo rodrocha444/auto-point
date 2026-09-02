@@ -27,6 +27,15 @@ export async function ensureDbReady() {
             id TEXT PRIMARY KEY,
             timestamp TEXT NOT NULL
           );
+          CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id TEXT PRIMARY KEY,
+            endpoint TEXT NOT NULL,
+            p256dh TEXT NOT NULL,
+            auth TEXT NOT NULL,
+            target_notify_at TEXT,
+            notified INTEGER DEFAULT 0,
+            updated_at TEXT NOT NULL
+          );
         `);
       } catch (error) {
         console.warn("Auto-initialization of tables skipped or failed:", error);
