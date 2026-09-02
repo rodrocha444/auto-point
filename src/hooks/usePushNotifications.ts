@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import {
+  checkAndCreateFirstPointGoalAlert,
+  getCustomAlerts,
   getPushSubscription,
-  getWorkTargetMinutes,
   isPushSupported,
-  setWorkTargetMinutes,
+  saveCustomAlerts,
   subscribeToPush,
   syncPushSchedule,
   unsubscribeFromPush,
+  type CustomAlert,
 } from "@/services/pushService";
 import type { Point } from "@/db/schema";
 
@@ -20,7 +22,7 @@ export function usePushNotifications(todayPoints?: Point[]) {
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] = useState<PushPermissionStatus>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [targetMinutes, setTargetMinutesState] = useState<number>(getWorkTargetMinutes);
+  const [alerts, setAlerts] = useState<CustomAlert[]>(getCustomAlerts);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -45,35 +47,83 @@ export function usePushNotifications(todayPoints?: Point[]) {
       });
   }, []);
 
-  const updateTargetMinutes = useCallback(
-    (minutes: number) => {
-      setWorkTargetMinutes(minutes);
-      setTargetMinutesState(minutes);
-      if (isSubscribed && todayPoints) {
-        syncPushSchedule(todayPoints, minutes).catch(console.warn);
+  // Auto-criação da meta no primeiro ponto do dia (apenas se for o primeiro ponto registrado)
+  useEffect(() => {
+    if (todayPoints && todayPoints.length >= 1) {
+      const updated = checkAndCreateFirstPointGoalAlert();
+      if (updated) {
+        setAlerts(updated);
+        if (isSubscribed) {
+          syncPushSchedule(todayPoints, updated).catch(console.warn);
+        }
+      }
+    }
+  }, [todayPoints, isSubscribed]);
+
+  const saveAndSyncAlerts = useCallback(
+    (newAlerts: CustomAlert[]) => {
+      setAlerts(newAlerts);
+      saveCustomAlerts(newAlerts);
+      if (isSubscribed) {
+        syncPushSchedule(todayPoints, newAlerts).catch(console.warn);
       }
     },
     [isSubscribed, todayPoints],
   );
 
-  // Sincroniza sempre que os pontos do dia ou a meta mudarem
+  const addAlert = useCallback(
+    (newAlertData: Omit<CustomAlert, "id">) => {
+      const id = "alert-" + Date.now();
+      const updated = [...alerts, { ...newAlertData, id }];
+      saveAndSyncAlerts(updated);
+    },
+    [alerts, saveAndSyncAlerts],
+  );
+
+  const removeAlert = useCallback(
+    (id: string) => {
+      const updated = alerts.filter((a) => a.id !== id);
+      saveAndSyncAlerts(updated);
+    },
+    [alerts, saveAndSyncAlerts],
+  );
+
+  const toggleAlert = useCallback(
+    (id: string) => {
+      const updated = alerts.map((a) =>
+        a.id === id ? { ...a, enabled: !a.enabled } : a,
+      );
+      saveAndSyncAlerts(updated);
+    },
+    [alerts, saveAndSyncAlerts],
+  );
+
+  const updateAlert = useCallback(
+    (updatedAlert: CustomAlert) => {
+      const updated = alerts.map((a) =>
+        a.id === updatedAlert.id ? updatedAlert : a,
+      );
+      saveAndSyncAlerts(updated);
+    },
+    [alerts, saveAndSyncAlerts],
+  );
+
+  // Sincroniza sempre que os pontos do dia ou o status de subscrição mudarem
   useEffect(() => {
-    if (isSubscribed && todayPoints) {
-      syncPushSchedule(todayPoints, targetMinutes).catch((err) => {
-        console.warn("Falha ao sincronizar horário do push:", err);
+    if (isSubscribed) {
+      syncPushSchedule(todayPoints, alerts).catch((err) => {
+        console.warn("Falha ao sincronizar push:", err);
       });
     }
-  }, [isSubscribed, todayPoints, targetMinutes]);
+  }, [isSubscribed, todayPoints, alerts]);
 
   const enablePush = useCallback(async () => {
     try {
       setIsLoading(true);
-      const sub = await subscribeToPush();
+      const sub = await subscribeToPush(alerts);
       setIsSubscribed(Boolean(sub));
       setPermission(Notification.permission as PushPermissionStatus);
-      if (todayPoints) {
-        await syncPushSchedule(todayPoints);
-      }
+      await syncPushSchedule(todayPoints, alerts);
       return true;
     } catch (error) {
       console.error("Falha ao habilitar notificações push:", error);
@@ -84,7 +134,7 @@ export function usePushNotifications(todayPoints?: Point[]) {
     } finally {
       setIsLoading(false);
     }
-  }, [todayPoints]);
+  }, [todayPoints, alerts]);
 
   const disablePush = useCallback(async () => {
     try {
@@ -107,8 +157,12 @@ export function usePushNotifications(todayPoints?: Point[]) {
     permission,
     isSubscribed,
     isLoading,
-    targetMinutes,
-    updateTargetMinutes,
+    alerts,
+    addAlert,
+    removeAlert,
+    toggleAlert,
+    updateAlert,
+    saveAndSyncAlerts,
     enablePush,
     disablePush,
   };

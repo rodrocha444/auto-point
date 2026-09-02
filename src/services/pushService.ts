@@ -2,6 +2,93 @@ import { db, ensureDbReady } from "@/db";
 import { pushSubscriptions, type Point } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+export type AlertType = "exact_time" | "work_duration";
+
+export interface CustomAlert {
+  id: string;
+  type: AlertType;
+  label: string;
+  time?: string; // "HH:mm" (ex: "12:00")
+  durationMinutes?: number; // minutos trabalhados (ex: 480)
+  onlyIfWorking: boolean; // Só notificar se ponto estiver aberto
+  enabled: boolean;
+  lastNotifiedDate?: string;
+}
+
+export const DEFAULT_WORK_MINUTES = 480; // 8 horas
+
+export function createDefaultGoalAlert(minutes: number = DEFAULT_WORK_MINUTES): CustomAlert {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const label = `Meta de ${h}h${m > 0 ? ` ${m}m` : ""}`;
+  return {
+    id: "goal-" + Date.now(),
+    type: "work_duration",
+    label,
+    durationMinutes: minutes,
+    onlyIfWorking: true,
+    enabled: true,
+  };
+}
+
+const STORAGE_KEY_ALERTS = "auto_point_daily_alerts_v3";
+const STORAGE_KEY_GOAL_AUTO_CREATED = "auto_point_goal_auto_created_date";
+
+function getTodayKey(): string {
+  const now = new Date();
+  return now.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+export function getCustomAlerts(): CustomAlert[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ALERTS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    const today = getTodayKey();
+    if (parsed && parsed.date === today && Array.isArray(parsed.alerts)) {
+      return parsed.alerts;
+    }
+    // Se mudou o dia, reinicia a lista vazia para o novo dia
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomAlerts(alerts: CustomAlert[]): void {
+  if (typeof window === "undefined") return;
+  const today = getTodayKey();
+  localStorage.setItem(STORAGE_KEY_ALERTS, JSON.stringify({ date: today, alerts }));
+}
+
+/**
+ * Cria o aviso de meta automaticamente no primeiro ponto do dia, caso ainda não tenha sido criado hoje
+ */
+export function checkAndCreateFirstPointGoalAlert(): CustomAlert[] | null {
+  if (typeof window === "undefined") return null;
+  const today = getTodayKey();
+  const alreadyAutoCreated = localStorage.getItem(STORAGE_KEY_GOAL_AUTO_CREATED) === today;
+
+  if (alreadyAutoCreated) {
+    return null;
+  }
+
+  localStorage.setItem(STORAGE_KEY_GOAL_AUTO_CREATED, today);
+  const currentAlerts = getCustomAlerts();
+
+  // Se já existir um aviso de meta manual, não duplica
+  const hasGoalAlert = currentAlerts.some((a) => a.type === "work_duration");
+  if (hasGoalAlert) {
+    return currentAlerts;
+  }
+
+  const newGoalAlert = createDefaultGoalAlert();
+  const updatedAlerts = [newGoalAlert, ...currentAlerts];
+  saveCustomAlerts(updatedAlerts);
+  return updatedAlerts;
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -28,7 +115,7 @@ export async function getPushSubscription(): Promise<PushSubscription | null> {
   return await registration.pushManager.getSubscription();
 }
 
-export async function subscribeToPush(): Promise<PushSubscription | null> {
+export async function subscribeToPush(alerts: CustomAlert[] = getCustomAlerts()): Promise<PushSubscription | null> {
   if (!isPushSupported()) {
     throw new Error("Push Notifications não são suportadas neste navegador.");
   }
@@ -53,7 +140,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
     });
   }
 
-  await saveSubscriptionToDb(subscription);
+  await saveSubscriptionToDb(subscription, alerts);
   return subscription;
 }
 
@@ -76,6 +163,7 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 
 export async function saveSubscriptionToDb(
   subscription: PushSubscription,
+  alerts: CustomAlert[] = getCustomAlerts(),
   targetNotifyAt: string | null = null,
 ): Promise<void> {
   await ensureDbReady();
@@ -93,6 +181,7 @@ export async function saveSubscriptionToDb(
     .limit(1);
 
   const now = new Date().toISOString();
+  const alertsJson = JSON.stringify(alerts);
 
   if (existing.length > 0) {
     await db
@@ -100,6 +189,7 @@ export async function saveSubscriptionToDb(
       .set({
         p256dh,
         auth,
+        alerts: alertsJson,
         targetNotifyAt,
         notified: false,
         updatedAt: now,
@@ -116,6 +206,7 @@ export async function saveSubscriptionToDb(
       endpoint,
       p256dh,
       auth,
+      alerts: alertsJson,
       targetNotifyAt,
       notified: false,
       updatedAt: now,
@@ -123,33 +214,15 @@ export async function saveSubscriptionToDb(
   }
 }
 
-const DEFAULT_TARGET_MINUTES = 8 * 60; // 480 min (8 horas)
-const STORAGE_KEY_WORK_TARGET = "auto_point_work_target_minutes";
-
-export function getWorkTargetMinutes(): number {
-  if (typeof window === "undefined") return DEFAULT_TARGET_MINUTES;
-  const stored = localStorage.getItem(STORAGE_KEY_WORK_TARGET);
-  if (!stored) return DEFAULT_TARGET_MINUTES;
-  const parsed = parseInt(stored, 10);
-  return Number.isNaN(parsed) || parsed <= 0 ? DEFAULT_TARGET_MINUTES : parsed;
-}
-
-export function setWorkTargetMinutes(minutes: number): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY_WORK_TARGET, String(minutes));
-}
-
 /**
- * Calcula quando o usuário completará a meta de horas de trabalho no dia atual.
- * Retorna ISO string do momento futuro, ou null se não estiver trabalhando ou já completou.
+ * Calcula quando o usuário completará uma meta de minutos de trabalho no dia atual.
  */
 export function calculateTargetWorkTime(
   points: Point[],
-  targetMinutes: number = getWorkTargetMinutes(),
+  targetMinutes: number,
 ): string | null {
   if (!points || points.length === 0) return null;
 
-  // Se o número de batidas for par, usuário está pausado/fora do trabalho
   const isWorking = points.length % 2 === 1;
   if (!isWorking) return null;
 
@@ -164,8 +237,7 @@ export function calculateTargetWorkTime(
 
   const remainingMs = targetMs - totalClosedMs;
   if (remainingMs <= 0) {
-    // Já atingiu a meta
-    return null;
+    return new Date().toISOString();
   }
 
   const currentEntryTimestamp = new Date(
@@ -174,26 +246,37 @@ export function calculateTargetWorkTime(
 
   const targetCompletionDate = new Date(currentEntryTimestamp + remainingMs);
 
-  // Se a data calculada já passou no relógio atual
   if (targetCompletionDate.getTime() <= Date.now()) {
-    return null;
+    return new Date().toISOString();
   }
 
   return targetCompletionDate.toISOString();
 }
 
 /**
- * Sincroniza o agendamento de notificação com base nos pontos de hoje e meta
+ * Sincroniza a lista de avisos com o Turso/Push Subscriptions
  */
 export async function syncPushSchedule(
-  todayPoints: Point[],
-  targetMinutes: number = getWorkTargetMinutes(),
+  todayPoints?: Point[],
+  alerts: CustomAlert[] = getCustomAlerts(),
 ): Promise<void> {
   if (!isPushSupported()) return;
 
   const subscription = await getPushSubscription();
   if (!subscription) return;
 
-  const targetNotifyAt = calculateTargetWorkTime(todayPoints, targetMinutes);
-  await saveSubscriptionToDb(subscription, targetNotifyAt);
+  let nextTargetIso: string | null = null;
+  const isWorking = Boolean(todayPoints && todayPoints.length % 2 === 1);
+
+  if (isWorking && todayPoints) {
+    const activeDurations = alerts.filter(
+      (a) => a.enabled && a.type === "work_duration" && a.durationMinutes,
+    );
+    if (activeDurations.length > 0) {
+      const minDuration = Math.min(...activeDurations.map((a) => a.durationMinutes!));
+      nextTargetIso = calculateTargetWorkTime(todayPoints, minDuration);
+    }
+  }
+
+  await saveSubscriptionToDb(subscription, alerts, nextTargetIso);
 }

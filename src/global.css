@@ -5,6 +5,31 @@ body {
   overflow: hidden;
 }
 
+/* SAFE AREA INSETS (iOS PWA / Notch support) */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-top {
+  top: max(0.75rem, calc(var(--safe-top) + 0.5rem));
+}
+
+.safe-pt {
+  padding-top: max(1.25rem, calc(var(--safe-top) + 0.75rem));
+}
+
+.safe-pb {
+  padding-bottom: max(1.25rem, calc(var(--safe-bottom) + 1rem));
+}
+
+.safe-px {
+  padding-left: max(1rem, calc(var(--safe-left) + 1rem));
+  padding-right: max(1rem, calc(var(--safe-right) + 1rem));
+}
+
 /* INTERFACE NATIVA */
 * {
   -webkit-tap-highlight-color: transparent;

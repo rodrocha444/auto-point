@@ -48,13 +48,13 @@ function RootComponent() {
 
       {/* Floating Sync Status Pill */}
       {isBusy && (
-        <div className="fixed top-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/90 border border-zinc-700/80 text-[11px] font-medium text-zinc-300 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed safe-top right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/90 border border-zinc-700/80 text-[11px] font-medium text-zinc-300 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           <Loader2 className="w-3 h-3 animate-spin text-violet-400" />
           <span>{isMutating > 0 ? "Salvando no Turso..." : "Sincronizando..."}</span>
         </div>
       )}
 
-      <div className="w-full max-w-md min-h-dvh flex flex-col flex-1 relative px-4 py-5 sm:px-6">
+      <div className="w-full max-w-md min-h-dvh flex flex-col flex-1 relative safe-px safe-pt safe-pb">
         <Outlet />
       </div>
       {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}

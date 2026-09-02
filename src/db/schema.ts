@@ -10,6 +10,7 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
   endpoint: text("endpoint").notNull(),
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),
+  alerts: text("alerts"),
   targetNotifyAt: text("target_notify_at"),
   notified: integer("notified", { mode: "boolean" }).default(false),
   updatedAt: text("updated_at").notNull(),
