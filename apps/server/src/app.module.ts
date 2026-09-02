@@ -3,10 +3,8 @@ import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { join } from "node:path";
-import { ScheduleModule } from "@nestjs/schedule";
 import { ConfigModule } from "@nestjs/config";
 import { PointsModule } from "./modules/points/points.module";
-import { PushModule } from "./modules/push-subscription/push.module";
 
 @Module({
   imports: [
@@ -28,9 +26,7 @@ import { PushModule } from "./modules/push-subscription/push.module";
       sortSchema: true,
       playground: process.env.NODE_ENV !== "production",
     }),
-    ScheduleModule.forRoot(),
     PointsModule,
-    PushModule,
   ],
 })
 export class AppModule {}
