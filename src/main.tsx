@@ -27,7 +27,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <Theme>
+        <Theme appearance="dark" accentColor="violet" grayColor="slate" radius="large">
           <RouterProvider router={router} />
         </Theme>
       </QueryClientProvider>

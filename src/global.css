@@ -31,3 +31,34 @@ a {
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
 }
+
+/* ESTILOS DE IMPRESSÃO */
+@media print {
+  html,
+  body {
+    overflow: visible !important;
+    height: auto !important;
+    background: #ffffff !important;
+    color: #18181b !important;
+  }
+
+  main {
+    background: #ffffff !important;
+    color: #18181b !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  .no-print,
+  button,
+  nav,
+  header a,
+  [data-radix-portal] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}

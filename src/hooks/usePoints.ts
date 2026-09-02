@@ -70,6 +70,7 @@ export function usePointsInInterval(
 
 export function useCreatePoint(options?: {
   onSuccess?: () => void;
+  onError?: (error: Error) => void;
 }) {
   const queryClient = useQueryClient();
 
@@ -79,11 +80,17 @@ export function useCreatePoint(options?: {
       queryClient.invalidateQueries({ queryKey: pointKeys.all });
       options?.onSuccess?.();
     },
+    onError: (error) => {
+      console.error("Falha ao registrar ponto:", error);
+      alert(`Falha ao registrar ponto: ${error instanceof Error ? error.message : String(error)}`);
+      options?.onError?.(error as Error);
+    },
   });
 }
 
 export function useDeletePoint(options?: {
   onSuccess?: () => void;
+  onError?: (error: Error) => void;
 }) {
   const queryClient = useQueryClient();
 
@@ -92,6 +99,11 @@ export function useDeletePoint(options?: {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: pointKeys.all });
       options?.onSuccess?.();
+    },
+    onError: (error) => {
+      console.error("Falha ao excluir ponto:", error);
+      alert(`Falha ao excluir ponto: ${error instanceof Error ? error.message : String(error)}`);
+      options?.onError?.(error as Error);
     },
   });
 }
