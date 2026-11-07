@@ -60,10 +60,14 @@ export async function getPointsByDate(
   return results;
 }
 
-export async function getTotalMsInMonth(
+export async function getMonthPointsAndSummary(
   date: string,
   timezone: string = DEFAULT_TIMEZONE,
-): Promise<{ milliseconds: number; invalidDays: number }> {
+): Promise<{
+  points: Point[];
+  milliseconds: number;
+  invalidDays: number;
+}> {
   await ensureDbReady();
   const startString = `${date} 00:00:00`;
   const endString = `${date} 23:59:59.999`;
@@ -88,7 +92,7 @@ export async function getTotalMsInMonth(
 
   const gruposPorDia: Record<string, Date[]> = {};
 
-  allPoints.forEach(ponto => {
+  allPoints.forEach((ponto) => {
     const timestampInTimezone = toZonedTime(new Date(ponto.timestamp), timezone);
     const diaKey = format(timestampInTimezone, "MM-dd", {
       timeZone: timezone,
@@ -121,8 +125,20 @@ export async function getTotalMsInMonth(
   }
 
   return {
+    points: allPoints,
     milliseconds,
     invalidDays,
+  };
+}
+
+export async function getTotalMsInMonth(
+  date: string,
+  timezone: string = DEFAULT_TIMEZONE,
+): Promise<{ milliseconds: number; invalidDays: number }> {
+  const data = await getMonthPointsAndSummary(date, timezone);
+  return {
+    milliseconds: data.milliseconds,
+    invalidDays: data.invalidDays,
   };
 }
 

@@ -70,31 +70,43 @@ async function processScheduledNotifications(
 
   const { now, spDateStr, spTimeStr, todayStartIso } = getSaoPauloInfo();
 
-  // 1. Busca os pontos de hoje para calcular estado e tempo trabalhado
-  const pointsResult = await client.execute({
-    sql: `SELECT timestamp FROM points WHERE timestamp >= ? ORDER BY timestamp ASC`,
-    args: [todayStartIso],
-  });
-
-  const timestamps = pointsResult.rows.map((r) => String(r.timestamp));
-  const isPointOpen = timestamps.length % 2 === 1;
-
-  let totalWorkedMinutes = 0;
-  for (let i = 0; i < timestamps.length - 1; i += 2) {
-    const inMs = new Date(timestamps[i]).getTime();
-    const outMs = new Date(timestamps[i + 1]).getTime();
-    totalWorkedMinutes += (outMs - inMs) / 60000;
-  }
-
-  if (isPointOpen && timestamps.length > 0) {
-    const lastInMs = new Date(timestamps[timestamps.length - 1]).getTime();
-    totalWorkedMinutes += (now.getTime() - lastInMs) / 60000;
-  }
-
-  // 2. Busca todas as inscrições ativas
+  // 1. Busca todas as inscrições ativas primeiro para evitar ler a tabela points à toa
   const subResult = await client.execute({
     sql: `SELECT id, endpoint, p256dh, auth, alerts, target_notify_at, notified FROM push_subscriptions`,
   });
+
+  if (subResult.rows.length === 0) {
+    return { sent: 0, failed: 0, skipped: 0 };
+  }
+
+  // 2. Leitura preguiçosa (lazy) dos pontos de hoje: só lê o banco se algum alerta realmente necessitar
+  let pointsDataCache: { isPointOpen: boolean; totalWorkedMinutes: number } | null = null;
+  const getPointsData = async () => {
+    if (!pointsDataCache) {
+      const pointsResult = await client.execute({
+        sql: `SELECT timestamp FROM points WHERE timestamp >= ? ORDER BY timestamp ASC`,
+        args: [todayStartIso],
+      });
+
+      const timestamps = pointsResult.rows.map((r) => String(r.timestamp));
+      const isPointOpen = timestamps.length % 2 === 1;
+
+      let totalWorkedMinutes = 0;
+      for (let i = 0; i < timestamps.length - 1; i += 2) {
+        const inMs = new Date(timestamps[i]).getTime();
+        const outMs = new Date(timestamps[i + 1]).getTime();
+        totalWorkedMinutes += (outMs - inMs) / 60000;
+      }
+
+      if (isPointOpen && timestamps.length > 0) {
+        const lastInMs = new Date(timestamps[timestamps.length - 1]).getTime();
+        totalWorkedMinutes += (now.getTime() - lastInMs) / 60000;
+      }
+
+      pointsDataCache = { isPointOpen, totalWorkedMinutes };
+    }
+    return pointsDataCache;
+  };
 
   let sent = 0;
   let failed = 0;
@@ -126,7 +138,6 @@ async function processScheduledNotifications(
     if (Array.isArray(alerts) && alerts.length > 0) {
       for (const alert of alerts) {
         if (!alert.enabled) continue;
-        if (alert.onlyIfWorking && !isPointOpen) continue;
         if (alert.lastNotifiedDate === spDateStr) continue;
 
         let shouldTrigger = false;
@@ -134,11 +145,19 @@ async function processScheduledNotifications(
         const pushBody = alert.description?.trim() ? alert.description.trim() : " ";
 
         if (alert.type === "exact_time" && alert.time) {
-          // Dispara se o horário atual é igual ou posterior ao horário configurado hoje
+          // Só avalia se o horário já chegou hoje
           if (spTimeStr >= alert.time) {
-            shouldTrigger = true;
+            if (alert.onlyIfWorking) {
+              const { isPointOpen } = await getPointsData();
+              if (isPointOpen) {
+                shouldTrigger = true;
+              }
+            } else {
+              shouldTrigger = true;
+            }
           }
         } else if (alert.type === "work_duration" && alert.durationMinutes) {
+          const { isPointOpen, totalWorkedMinutes } = await getPointsData();
           if (isPointOpen && totalWorkedMinutes >= alert.durationMinutes) {
             shouldTrigger = true;
           }
@@ -182,6 +201,7 @@ async function processScheduledNotifications(
       }
     } else if (sub.target_notify_at && sub.target_notify_at <= now.toISOString()) {
       // Fallback legado para target_notify_at
+      const { isPointOpen } = await getPointsData();
       if (!isPointOpen) {
         skipped++;
         await client.execute({

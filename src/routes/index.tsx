@@ -1,13 +1,12 @@
 import {
   useCreatePoint,
   useDeletePoint,
-  usePointsByDate,
-  useTotalMsInMonth,
+  useMonthPointsAndSummary,
 } from "@/hooks/usePoints";
 import { formatMsToHHMM } from "@/utils/formatMsToHHMM";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import {
   BarChart3,
@@ -42,13 +41,20 @@ function RouteComponent() {
 
   const today = format(currentTime, "yyyy-MM-dd");
 
-  const { data: todayPoints, isPending: isLoadingPoints } = usePointsByDate({
-    date: today,
-  });
+  const { data: monthData, isPending: isLoadingPoints } =
+    useMonthPointsAndSummary({
+      date: today,
+    });
 
-  const { data: totalMsInMonth } = useTotalMsInMonth({
-    date: today,
-  });
+  const todayPoints = useMemo(() => {
+    if (!monthData?.points) return [];
+    return monthData.points.filter((p) => {
+      const tzDate = toZonedTime(new Date(p.timestamp), "America/Sao_Paulo");
+      return format(tzDate, "yyyy-MM-dd") === today;
+    });
+  }, [monthData?.points, today]);
+
+  const totalMsInMonth = monthData;
 
   const { mutate: createPoint, isPending: isCreatingPoint } = useCreatePoint();
   const {
