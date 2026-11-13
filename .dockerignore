@@ -4,5 +4,3 @@ dist
 .turbo
 .tanstack
 *.db
-worker/node_modules
-worker/.wrangler

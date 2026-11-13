@@ -20,7 +20,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { PushNotificationToggle } from "@/atomic/molecules/PushNotificationToggle";
 import { CreatePointModal } from "@/atomic/organims/CreatePointModal";
 import buildTime from "virtual:build-time";
 
@@ -46,13 +45,14 @@ function RouteComponent() {
       date: today,
     });
 
+  const monthPoints = monthData?.points;
   const todayPoints = useMemo(() => {
-    if (!monthData?.points) return [];
-    return monthData.points.filter((p) => {
+    if (!monthPoints) return [];
+    return monthPoints.filter((p) => {
       const tzDate = toZonedTime(new Date(p.timestamp), "America/Sao_Paulo");
       return format(tzDate, "yyyy-MM-dd") === today;
     });
-  }, [monthData?.points, today]);
+  }, [monthPoints, today]);
 
   const totalMsInMonth = monthData;
 
@@ -127,7 +127,6 @@ function RouteComponent() {
         </div>
 
         <nav className="flex items-center gap-2">
-          <PushNotificationToggle todayPoints={todayPoints} />
           <Link
             to="/points"
             className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 shadow-sm"

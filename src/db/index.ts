@@ -31,26 +31,6 @@ export async function ensureDbReady() {
         await client.execute(`
           CREATE INDEX IF NOT EXISTS idx_points_timestamp ON points (timestamp)
         `);
-        await client.execute(`
-          CREATE TABLE IF NOT EXISTS push_subscriptions (
-            id TEXT PRIMARY KEY,
-            endpoint TEXT NOT NULL,
-            p256dh TEXT NOT NULL,
-            auth TEXT NOT NULL,
-            alerts TEXT,
-            target_notify_at TEXT,
-            notified INTEGER DEFAULT 0,
-            updated_at TEXT NOT NULL
-          )
-        `);
-        await client.execute(`
-          CREATE INDEX IF NOT EXISTS idx_push_endpoint ON push_subscriptions (endpoint)
-        `);
-        try {
-          await client.execute(`ALTER TABLE push_subscriptions ADD COLUMN alerts TEXT;`);
-        } catch {
-          // Ignora caso a coluna já exista
-        }
       } catch (error) {
         console.warn("Auto-initialization of tables skipped or failed:", error);
       }
