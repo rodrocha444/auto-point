@@ -30,6 +30,8 @@
     "date-fns-tz": "^3.2.0",
     "drizzle-orm": "^0.45.1",
     "eruda": "^3.4.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.13.0",

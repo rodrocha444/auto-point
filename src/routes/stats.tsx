@@ -24,6 +24,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { CreatePointModal } from "@/atomic/organims/CreatePointModal";
+import { generateAndShareTimesheetPdf } from "@/services/timesheetPdfService";
 
 export const Route = createFileRoute("/stats")({
   component: RouteComponent,
@@ -61,6 +62,7 @@ type DateSchema = z.infer<typeof datesSchema>;
 
 function RouteComponent() {
   const [visibleCreatePointModal, setVisibleCreatePointModal] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const {
     mutate: deletePoint,
     isPending: isDeletingPoint,
@@ -116,8 +118,23 @@ function RouteComponent() {
     setFilterDates({ startDate: start, endDate: end });
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    setIsExportingPdf(true);
+    try {
+      await generateAndShareTimesheetPdf({
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        groupedPoints,
+        totalMilliseconds: totalMsData?.milliseconds ?? 0,
+        hourlyRate,
+        totalAReceber,
+      });
+    } catch (err) {
+      console.error("Falha ao exportar folha de ponto:", err);
+      window.print();
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   return (
@@ -143,11 +160,18 @@ function RouteComponent() {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrint}
-            className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-            title="Imprimir Folha de Ponto"
+            disabled={isExportingPdf}
+            className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-semibold disabled:opacity-50"
+            title="Exportar / Imprimir Folha de Ponto"
           >
-            <Printer className="w-4 h-4 text-violet-400" />
-            <span className="hidden sm:inline">Imprimir</span>
+            {isExportingPdf ? (
+              <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+            ) : (
+              <Printer className="w-4 h-4 text-violet-400" />
+            )}
+            <span className="hidden sm:inline">
+              {isExportingPdf ? "Gerando..." : "Imprimir / PDF"}
+            </span>
           </button>
 
           <button
